@@ -2,6 +2,7 @@
 from rest_framework import serializers
 from .models import CustomUser
 from django.contrib.auth.hashers import make_password
+from .models import Earnings, Referral, Withdrawal
 
 class LoginSerializer(serializers.Serializer):
     identifier = serializers.CharField()
@@ -39,3 +40,14 @@ class RegisterSerializer(serializers.ModelSerializer):
         validated_data["password"] = make_password(validated_data["password"])
         validated_data["is_active"] = False  # Pending approval
         return super().create(validated_data)
+    
+class ProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ["username", "phone", "email", "balance", "referral_code", "referred_by"]
+        read_only_fields = ["balance", "referral_code", "referred_by"]
+
+class DashboardSerializer(serializers.Serializer):
+    total_earnings = serializers.DecimalField(max_digits=10, decimal_places=2)
+    total_referrals = serializers.IntegerField()
+    pending_withdrawals = serializers.DecimalField(max_digits=10, decimal_places=2)
