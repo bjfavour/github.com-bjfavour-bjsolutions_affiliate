@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>login</title>
+    <link rel="stylesheet" href="/Frontend/css/style1.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+    
+</head>
+<body>
+    <nav class="nav2">
+        <div class="nav_display">
+            <img src="/Frontend/Resources/Bj Logo.jpeg" alt="" class="logo_new">
+            <h1>
+                bjsolutions
+            </h1>
+        </div>
+        <div>
+            <ul class="nav_display2">
+                <li class="remove">
+                    <a class="remove1" href="/Frontend/index.html">Home</a>
+                    
+                </li>
+                <li class="remove">
+                    <a class="remove1" href="/Frontend/register.html">Register</a>
+                </li>
+               
+                <li class="remove">
+                    <a class="remove1" href="/Frontend/Contact_us.html">Contact us</a>
+                        
+                </li>
+                <li class="remove">
+                    <a class="remove1" href="/Frontend/About_us.html">About us</a>
+                    
+                </li>
+                
+            </ul>
+            <h2>
+                <i class="bi bi-list"></i>
+            </h2>
+        </div>
+    </nav>
+
+    <section class="middle">
+        <div class="login_session">
+          <h3 id="errormessage">
+
+          </h3>
+            <h1>
+                Bjsolutions!! Login
+            </h1>
+            <input type="text" placeholder="Username" class="userinput">
+            <input type="password" placeholder="Password" class="userinput">
+            <h1>
+                Forget Password
+            </h1>
+            <div class="checkbox">
+                <input type="checkbox" class="check">
+                <h3>
+                    Keep me signed in
+                </h3>
+            </div>
+            <button class="button1">
+                Sign In
+            </button>
+            <h1>
+                Don't Have an Account? <a href="#"><span style="color: #6b69f8;">Register Now</span></a> 
+            </h1>
+
+        </div>
+
+    </section>
+    
+      <footer class="foot">
+        <div class="foot1">
+          <h1>
+            BjSolutions
+          </h1>
+          <p>
+            The most advanced affiliate marketing platform designed to <br> help you scale your business with AI-powered optimization and <br> real-time analytics.
+          </p>
+          <div class="foot2">
+            <i class="bi bi-envelope"></i>
+            <p>
+              contact@bjsolutions.com
+            </p>
+          </div>
+          <div class="foot2">
+            <i class="bi bi-telephone"></i>
+            <p>
+              +234 8034453005
+            </p>
+          </div>
+          <div class="foot2">
+            <i class="bi bi-geo-alt-fill"></i>
+            <p>
+              Almoroof Busstop Isheri Oshun <br> Alimosho Local Govenment Lagos
+            </p>
+          </div>
+          <div class="icons">
+            <i class="bi bi-facebook"></i>
+            <i class="bi bi-twitter"></i>
+            <i class="bi bi-linkedin"></i>
+            <i class="bi bi-instagram"></i>
+          </div>
+        </div>
+        <div class="company">
+          <h1>
+            Company
+          </h1>
+          <ul class="company1">
+            <li>
+              Home
+            </li>
+            <li>
+              About Us
+            </li>
+            <li>
+              Blog
+            </li>
+            <li>
+              Contact Us
+            </li>
+          </ul>
+        </div>
+        <div class="company">
+          <h1>
+            Resources
+          </h1>
+          <ul class="company1">
+            <li>
+              Documentations
+            </li>
+            <li>
+              Help Center
+            </li>
+            <li>
+              Guides
+            </li>
+            <li>
+              webinars
+            </li>
+          </ul>
+        </div>
+        <div class="company">
+          <h1>
+            Products
+          </h1>
+          <ul class="company1">
+            <li>
+              Electronics
+            </li>
+            <li>
+              Farm produce
+            </li>
+            <li>
+              Health
+            </li>
+            <li>
+              Beauty/Fashion 
+            </li>
+          </ul>
+        </div>
+      </footer>  
+  <script>
+  const API_URL = "http://127.0.0.1:8000/api/accounts/login/";
+  const errormessage = document.getElementById("errormessage");
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const loginButton = document.querySelector(".button1");
+
+    loginButton.addEventListener("click", function () {
+      const username = document.querySelectorAll(".userinput")[0].value;
+      const password = document.querySelectorAll(".userinput")[1].value;
+
+      // Clear previous message
+      errormessage.textContent = "";
+
+      if (!username || !password) {
+        errormessage.style.color = "red";
+        errormessage.textContent = "Please enter both username and password.";
+        return;
+      }
+
+      // Step 1: Show loader message
+      errormessage.style.color = "blue";
+      errormessage.textContent = "Logging in, please wait...";
+
+      // Step 2: Send request after 5 seconds
+      setTimeout(() => {
+        fetch(API_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ username: username, password: password })
+        })
+        .then(res => {
+          if (!res.ok) {
+            return res.json().then(data => {
+              throw new Error(data.detail || "Login failed.");
+            });
+          }
+          return res.json();
+        })
+        .then(data => {
+          localStorage.setItem("access", data.access);
+          // Step 3: Show success
+          errormessage.style.color = "green";
+          errormessage.textContent = "Login successful! Redirecting in 3 seconds...";
+
+          // Step 4: Redirect after 3 seconds
+          setTimeout(() => {
+            window.location.href = "http://127.0.0.1:5500/Frontend/dashboard.html";
+          }, 3000);
+        })
+        .catch(err => {
+          errormessage.style.color = "red";
+          errormessage.textContent = err.message;
+        });
+      }, 5000);
+    });
+  });
+</script>
+</body>
+</html>
+    

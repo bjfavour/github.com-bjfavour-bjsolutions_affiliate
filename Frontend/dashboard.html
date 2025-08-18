@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Affiliate Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      background-color: #f8f9fa;
+      padding: 20px;
+    }
+    .profile-section img {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    .marketing-material img, .marketing-material video {
+      width: 100%;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard-header">
+    <h1>Welcome to Your Dashboard</h1>
+    <button onclick="logout()" style="float: right; padding: 8px 16px;">Logout</button>
+    <a href="products.html" class="btn btn-info w-100 mt-3">View Products to Market</a>
+
+  </div>
+
+  <div class="container">
+    <h1 class="mb-4">Affiliate Dashboard</h1>
+
+    <div class="row mb-4">
+      <div class="col-md-4">
+        <div class="card profile-section">
+          <div class="card-body text-center">
+            <img id="profile-image" src="https://via.placeholder.com/120" alt="Profile Picture">
+            <h5 class="mt-3" id="affiliateName">John Doe</h5>
+            <input type="file" class="form-control mt-2" id="uploadPic">
+            <hr />
+            <input type="text" class="form-control mb-2" placeholder="Update Full Name" id="updateName">
+            <input type="email" class="form-control mb-2" placeholder="Update Email" id="updateEmail">
+            <input type="text" class="form-control mb-2" placeholder="Bank Name" id="bankName">
+            <input type="text" class="form-control mb-2" placeholder="Account Number" id="accountNumber">
+            <input type="text" class="form-control mb-2" placeholder="Account Name" id="accountName">
+            <button class="btn btn-primary w-100" onclick="updateProfile()">Update Profile</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-8">
+       <!-- Cashout Overview -->
+<div class="card mb-4">
+  <div class="card-body">
+    <h5 class="card-title">Cashout Overview</h5>
+    <p><strong>Total Cashed Out:</strong> ₦<span id="totalCashout">0.00</span></p>
+
+    <!-- Cashout Request Form -->
+    <form id="cashoutForm" class="mb-4">
+      <div class="row">
+        <div class="col-md-6">
+          <input type="number" class="form-control" id="cashoutAmount" placeholder="Enter amount to cash out" required>
+        </div>
+        <div class="col-md-6">
+          <button type="submit" class="btn btn-success">Request Cashout</button>
+        </div>
+      </div>
+      <small class="text-muted mt-2 d-block">₦1,000 will be deducted as processing fee.</small>
+    </form>
+
+    <!-- Cashout History -->
+    <div id="cashoutHistoryContainer">
+      <h6>Cashout History</h6>
+      <table class="table table-bordered table-striped mt-3">
+        <thead>
+          <tr>
+            <th>Requested</th>
+            <th>Fee</th>
+            <th>Final</th>
+            <th>Date</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="cashoutTableBody">
+          <!-- Populated from JS -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+
+        <div class="card mb-4">
+          <div class="card-body">
+            <h5 class="card-title">Commission Overview</h5>
+            <canvas id="commissionChart" height="120"></canvas>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Marketing Materials</h5>
+            <div class="row marketing-material">
+              <div class="col-md-4">
+                
+              </div>
+              <div class="col-md-4">
+              
+                <!-- Marketing Materials Section -->
+<div class="card mt-4">
+  <div class="card-header">
+    <h5 class="mb-0">Marketing Materials</h5>
+  </div>
+  <div class="card-body">
+    <h6>Videos</h6>
+    <div id="videoList" class="mb-4"></div>
+
+    <h6>Pictures</h6>
+    <div id="pictureList"></div>
+  </div>
+</div>
+
+
+              </div>
+              <div class="col-md-4">
+                
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script src="/Frontend/js/dashboard.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,301 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: sans-serif;
+}
+
+/* Navbar */
+.nav2 {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  background-color: #c0e0f9;
+  flex-wrap: wrap;
+  padding: 10px 20px;
+  border-bottom-left-radius: 20px;
+  border-bottom-right-radius: 20px;
+  height: 150px;
+}
+
+.bi-list {
+    display: none;
+    font-size: 30px;
+}
+
+.nav_display {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  align-items: center;
+  color: blue;
+}
+
+.nav_display2 {
+  display: flex;
+  flex-direction: row;
+  gap: 40px;
+  font-size: 18px;
+  flex-wrap: wrap;
+  margin-top: 40px;
+  justify-content: center;
+}
+
+.remove {
+  list-style-type: none;
+}
+
+.remove1 {
+  text-decoration: none;
+  color: inherit;
+}
+
+.logo_new {
+  width: 60px;
+  height: 60px;
+  opacity: 0.5;
+}
+
+/* Login Section */
+.middle {
+  background-color: #fcfdff;
+  padding: 30px 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.login_session {
+  width: 100%;
+  max-width: 500px;
+  background-color: white;
+  border-radius: 20px;
+  box-shadow: 5px 5px lightblue;
+  padding: 40px 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.login_session h1 {
+  color: blue;
+  font-size: 24px;
+  text-align: center;
+}
+
+.userinput {
+  width: 100%;
+  height: 40px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+  padding: 5px 10px;
+  text-align: center;
+}
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.check {
+  width: 20px;
+  height: 20px;
+}
+
+.button1 {
+  width: 100%;
+  height: 40px;
+  border-radius: 5px;
+  font-size: 18px;
+  color: white;
+  background-color: #6b69f8;
+  border: none;
+  cursor: pointer;
+}
+
+a {
+  text-decoration: none;
+}
+
+span:hover {
+  font-size: 25px;
+  cursor: pointer;
+}
+textarea {
+  width: 100%;
+  height: 250px;
+  padding: 12px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+#word-count {
+  font-size: 14px;
+  color: #555;
+  margin-top: 5px;
+}
+
+button {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+
+/* Footer */
+.foot {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  padding: 40px 20px;
+  background-color: #f5fafe;
+  gap: 30px;
+}
+
+.foot1 {
+    /* border-style: solid; */
+    border-width: 2px;
+  max-width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.foot1 h1 {
+  color: blue;
+}
+
+.foot1 p {
+  font-size: 16px;
+  color: gray;
+}
+
+.foot2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.icons {
+  font-size: 24px;
+  display: flex;
+  gap: 15px;
+}
+
+.company {
+    /* border-style: solid; */
+    border-width: 3px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.company h1 {
+  color: blue;
+  font-size: 20px;
+}
+
+.company1 {
+  list-style-type: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 16px;
+  color: gray;
+}
+
+/* Responsive Media Queries */
+@media (max-width: 768px) {
+  .nav_display2 {
+    gap: 20px;
+    font-size: 16px;
+    padding: 10px 0;
+  }
+
+  .logo_new {
+    width: 50px;
+    height: 50px;
+  }
+
+  .foot {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .login_session {
+    padding: 30px 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav2 {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .nav_display2 {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .userinput,
+  .button1 {
+    font-size: 16px;
+    height: 36px;
+  }
+
+  .login_session h1 {
+    font-size: 20px;
+  }
+
+  .icons {
+    font-size: 20px;
+  }
+ .foot1 {
+    /* border-style: solid; */
+    border-width: 2px;
+  max-width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  text-align: center;
+  /* margin-left: 80px; */
+}
+
+.company {
+    /* border-style: solid; */
+    border-width: 3px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  text-align: center;
+  /* margin-left: 150px; */
+}
+
+.bi-list {
+    display: block;
+    font-size: 30px;
+}
+.remove {
+    display: none;
+    
+}
+
+}
+
+
