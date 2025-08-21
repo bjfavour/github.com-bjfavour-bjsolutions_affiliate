@@ -221,11 +221,15 @@ button:hover {
 
 /* Responsive Media Queries */
 @media (max-width: 768px) {
-  .nav_display2 {
-    gap: 20px;
-    font-size: 16px;
-    padding: 10px 0;
-  }
+ /* .nav_display2 {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 18px;
+  flex-wrap: wrap;
+  margin-top: 40px;
+  display:none
+} */
 
   .logo_new {
     width: 50px;
@@ -240,6 +244,53 @@ button:hover {
   .login_session {
     padding: 30px 20px;
   }
+  .menu-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.bi-list {
+  display: block;
+  font-size: 30px;
+  cursor: pointer;
+  padding: .4rem;
+}
+
+/* Hide menu by default */
+.nav_display2 {
+  display: none;
+  position: fixed;      /* fixed to viewport, not parent */
+  top: 20%;             /* distance from top of screen */
+  left: 50%;            /* push to middle horizontally */
+  transform: translateX(-50%); /* adjust back to center */
+  min-width: 300px;     /* wider since it's centered */
+  padding: .5rem 0;
+  list-style: none;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: .4rem;
+  box-shadow: 0 5px 15px rgba(0,0,0,.1);
+  z-index: 999;
+}
+
+
+/* Style list items */
+.nav_display2 li a {
+  display: block;
+  padding: .5rem 1rem;
+  text-decoration: none;
+  color: #333;
+}
+
+.nav_display2 li a:hover {
+  background: #f5f5f5;
+}
+
+/* Show menu on hover */
+.menu-wrapper:hover .nav_display2 {
+  display: block;
+}
+
 }
 
 @media (max-width: 480px) {
@@ -248,10 +299,10 @@ button:hover {
     align-items: center;
   }
 
-  .nav_display2 {
+  /* .nav_display2 {
     flex-direction: column;
     align-items: center;
-  }
+  } */
 
   .userinput,
   .button1 {
@@ -287,14 +338,62 @@ button:hover {
   /* margin-left: 150px; */
 }
 
-.bi-list {
+/* .bi-list {
     display: block;
     font-size: 30px;
-}
+} */
 .remove {
     display: none;
     
 }
+
+.menu-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.bi-list {
+  display: block;
+  font-size: 1.8rem;
+  cursor: pointer;
+  padding: .4rem;
+}
+
+/* Hide menu by default */
+.nav_display2 {
+  display: none;
+  position: fixed;      /* fixed to viewport, not parent */
+  top: 20%;             /* distance from top of screen */
+  left: 50%;            /* push to middle horizontally */
+  transform: translateX(-50%); /* adjust back to center */
+  min-width: 300px;     /* wider since it's centered */
+  padding: .5rem 0;
+  list-style: none;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: .4rem;
+  box-shadow: 0 5px 15px rgba(0,0,0,.1);
+  z-index: 999;
+}
+
+
+/* Style list items */
+.nav_display2 li a {
+  display: block;
+  padding: .5rem 1rem;
+  text-decoration: none;
+  color: #333;
+}
+
+.nav_display2 li a:hover {
+  background: #f5f5f5;
+}
+
+/* Show menu on hover */
+.menu-wrapper:hover .nav_display2 {
+  display: block;
+}
+
 
 }
 
