@@ -65,7 +65,7 @@
                 Sign In
             </button>
             <h1>
-                Don't Have an Account? <a href="#"><span style="color: #6b69f8;">Register Now</span></a> 
+                Don't Have an Account? <a href="http://127.0.0.1:5500/Frontend/register.html"><span style="color: #6b69f8;">Register Now</span></a> 
             </h1>
 
         </div>
@@ -163,66 +163,7 @@
           </ul>
         </div>
       </footer>  
-  <script>
-  const API_URL = "http://127.0.0.1:8000/api/accounts/login/";
-  const errormessage = document.getElementById("errormessage");
-
-  document.addEventListener("DOMContentLoaded", function () {
-    const loginButton = document.querySelector(".button1");
-
-    loginButton.addEventListener("click", function () {
-      const username = document.querySelectorAll(".userinput")[0].value;
-      const password = document.querySelectorAll(".userinput")[1].value;
-
-      // Clear previous message
-      errormessage.textContent = "";
-
-      if (!username || !password) {
-        errormessage.style.color = "red";
-        errormessage.textContent = "Please enter both username and password.";
-        return;
-      }
-
-      // Step 1: Show loader message
-      errormessage.style.color = "blue";
-      errormessage.textContent = "Logging in, please wait...";
-
-      // Step 2: Send request after 5 seconds
-      setTimeout(() => {
-        fetch(API_URL, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ username: username, password: password })
-        })
-        .then(res => {
-          if (!res.ok) {
-            return res.json().then(data => {
-              throw new Error(data.detail || "Login failed.");
-            });
-          }
-          return res.json();
-        })
-        .then(data => {
-          localStorage.setItem("access", data.access);
-          // Step 3: Show success
-          errormessage.style.color = "green";
-          errormessage.textContent = "Login successful! Redirecting in 3 seconds...";
-
-          // Step 4: Redirect after 3 seconds
-          setTimeout(() => {
-            window.location.href = "http://127.0.0.1:5500/Frontend/dashboard.html";
-          }, 3000);
-        })
-        .catch(err => {
-          errormessage.style.color = "red";
-          errormessage.textContent = err.message;
-        });
-      }, 5000);
-    });
-  });
-</script>
+<script src="/Frontend/js/login.js"></script>
 </body>
 </html>
     

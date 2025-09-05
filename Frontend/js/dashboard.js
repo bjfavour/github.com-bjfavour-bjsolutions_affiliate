@@ -1,73 +1,210 @@
-document.addEventListener("DOMContentLoaded", function () {
-  const token = localStorage.getItem("access");
+// dashboard.js
 
-  if (!token) {
-    alert("You must login to view products.");
-    window.location.href = "login.html";
-    return;
-  }
+const API_BASE = "http://127.0.0.1:8000/api/accounts"; 
+const token = localStorage.getItem("access");
 
-  fetch("http://localhost:8000/api/affiliate-products/", {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-  })
-    .then((res) => {
-      if (!res.ok) {
-        return res.text().then(text => {
-          throw new Error(`Failed to load products: ${res.status} ${text}`);
-        });
-      }
-      return res.json();
-    })
-    .then((products) => {
-      const productGrid = document.getElementById("productGrid");
-      const username = localStorage.getItem("username") || "affiliate";
+// 🚨 Redirect if not logged in
+if (!token) {
+  window.location.href = "/Frontend/login.html";
+}
 
-      if (products.length === 0) {
-        productGrid.innerHTML = "<p>No products available.</p>";
-        return;
-      }
+// Attach Authorization header helper
+function authHeaders(extra = {}) {
+  return {
+    "Authorization": `Bearer ${token}`,
+    ...extra
+  };
+}
 
-      products.forEach((product) => {
-        const card = document.createElement("div");
-        card.className = "col";
-
-        const price = parseFloat(product.price).toFixed(2);
-        const commissionValue = parseFloat(product.commission_value).toFixed(2);
-        const commissionLabel =
-          product.commission_type === "percent"
-            ? `${commissionValue}%`
-            : `₦${commissionValue}`;
-
-        const affiliateLink = `http://localhost:8000/product/${product.id}/?ref=${username}`;
-
-        // Use product.image if available, else use placeholder
-        const imageUrl = product.image
-          ? `http://localhost:8000${product.image}`
-          : "https://via.placeholder.com/300x200?text=No+Image";
-
-        card.innerHTML = `
-          <div class="card h-100">
-            <img src="${imageUrl}" class="card-img-top" alt="${product.name}" style="height:200px; object-fit:cover;">
-            <div class="card-body d-flex flex-column">
-              <h5 class="card-title">${product.name}</h5>
-              <p class="card-text"><strong>Category:</strong> ${product.category_name}</p>
-              <p class="card-text"><strong>Price:</strong> ₦${price}</p>
-              <p class="card-text"><strong>Commission:</strong> ${commissionLabel}</p>
-              <p class="affiliate-link mt-auto"><strong>Link:</strong><br><a href="${affiliateLink}" target="_blank">${affiliateLink}</a></p>
-              <a href="${affiliateLink}" target="_blank" class="btn btn-primary mt-2">Promote</a>
-            </div>
-          </div>
-        `;
-
-        productGrid.appendChild(card);
-      });
-    })
-    .catch((error) => {
-      console.error("Error:", error);
-      alert("Failed to load products.");
+// ================= PROFILE =================
+async function loadProfile() {
+  try {
+    const res = await fetch(`${API_BASE}/profile/`, {
+      headers: authHeaders()
     });
+    if (!res.ok) throw new Error("Failed to fetch profile");
+
+    const profile = await res.json();
+
+    document.getElementById("affiliateName").textContent = profile.full_name || profile.username;
+    document.getElementById("updateName").value = profile.full_name || "";
+    document.getElementById("updateEmail").value = profile.email || "";
+    document.getElementById("bankName").value = profile.bank_name || "";
+    document.getElementById("accountNumber").value = profile.bank_account || "";
+    document.getElementById("accountName").value = profile.beneficiary_name || "";
+
+    if (profile.profile_picture) {
+      document.getElementById("profile-image").src = profile.profile_picture;
+    }
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+async function updateProfile() {
+  const name = document.getElementById("updateName").value;
+  const email = document.getElementById("updateEmail").value;
+  const bankName = document.getElementById("bankName").value;
+  const accountNumber = document.getElementById("accountNumber").value;
+  const accountName = document.getElementById("accountName").value;
+  const profilePic = document.getElementById("uploadPic").files[0];
+
+  const formData = new FormData();
+  if (name) formData.append("full_name", name);
+  if (email) formData.append("email", email);
+  if (bankName) formData.append("bank_name", bankName);
+  if (accountNumber) formData.append("bank_account", accountNumber);
+  if (accountName) formData.append("beneficiary_name", accountName);
+  if (profilePic) formData.append("profile_picture", profilePic);
+
+  try {
+    const response = await fetch(`${API_BASE}/profile/`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`
+      },
+      body: formData
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || "Failed to update profile");
+    }
+
+    alert("Profile updated successfully!");
+    loadProfile();
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+// ================= DASHBOARD OVERVIEW =================
+async function loadDashboard() {
+  try {
+    const res = await fetch(`${API_BASE}/dashboard/`, {
+      headers: authHeaders()
+    });
+    if (!res.ok) throw new Error("Failed to fetch dashboard data");
+    const data = await res.json();
+
+    document.getElementById("totalCashout").textContent = data.total_cashout || 0;
+
+    if (data.commission_history) {
+      renderCommissionChart(data.commission_history);
+    }
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+// ================= CASHOUT =================
+async function loadCashoutHistory() {
+  try {
+    const res = await fetch(`${API_BASE}/cashout/`, {
+      headers: authHeaders()
+    });
+    if (!res.ok) throw new Error("Failed to fetch cashout history");
+
+    const data = await res.json(); // contains commission_balance + cashout_history
+    const history = data.cashout_history || [];
+
+    const tbody = document.getElementById("cashoutTableBody");
+    tbody.innerHTML = "";
+    history.forEach(row => {
+      tbody.innerHTML += `
+        <tr>
+          <td>${row.requested_amount}</td>
+          <td>${row.processing_fee}</td>
+          <td>${row.net_amount}</td>
+          <td>${row.date}</td>
+          <td>${row.status}</td>
+        </tr>
+      `;
+    });
+
+  } catch (err) {
+    console.error("Error loading history", err);
+  }
+}
+
+document.getElementById("cashoutForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const amount = document.getElementById("cashoutAmount").value;
+  try {
+    const res = await fetch(`${API_BASE}/cashout/`, {
+      method: "POST",
+      headers: authHeaders({ "Content-Type": "application/json" }),
+      body: JSON.stringify({ requested_amount: amount }) // ✅ must match backend
+    });
+    if (!res.ok) {
+      const errData = await res.json();
+      throw new Error(errData.detail || "Cashout request failed");
+    }
+    alert("Cashout requested successfully!");
+    loadDashboard();
+    loadCashoutHistory();
+  } catch (err) {
+    alert(err.message);
+  }
 });
+
+// ================= MARKETING MATERIAL =================
+async function loadMarketingMaterials() {
+  try {
+    const res = await fetch(`${API_BASE}/marketing-materials/`, {
+      headers: authHeaders()
+    });
+    if (!res.ok) throw new Error("Failed to fetch marketing materials");
+    const data = await res.json();
+
+    const videoList = document.getElementById("videoList");
+    const pictureList = document.getElementById("pictureList");
+
+    videoList.innerHTML = "";
+    pictureList.innerHTML = "";
+
+    (data.video || []).forEach(v => {
+      videoList.innerHTML += `<video controls src="${v.file}"></video>`;
+    });
+
+    (data.image || []).forEach(p => {
+      pictureList.innerHTML += `<img src="${p.file}" alt="Material" />`;
+    });
+  } catch (err) {
+    console.error("Error loading materials", err);
+  }
+}
+
+// ================= COMMISSION CHART =================
+function renderCommissionChart(history) {
+  const ctx = document.getElementById("commissionChart").getContext("2d");
+  new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: history.map(h => h.date),
+      datasets: [{
+        label: "Commission",
+        data: history.map(h => h.amount),
+        borderWidth: 2,
+        fill: false,
+        borderColor: "blue"
+      }]
+    }
+  });
+}
+
+// ================= LOGOUT =================
+function logout() {
+  localStorage.removeItem("access");
+  localStorage.removeItem("refresh");
+  window.location.href = "/Frontend/login.html";
+}
+window.logout = logout;
+
+// ================= INIT =================
+window.onload = () => {
+  loadProfile();
+  loadDashboard();
+  loadCashoutHistory();
+  loadMarketingMaterials();
+};

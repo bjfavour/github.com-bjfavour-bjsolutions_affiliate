@@ -1,37 +1,132 @@
 from rest_framework.decorators import api_view
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
-from .serializers import RegisterSerializer, ProfileSerializer, DashboardSerializer
+from rest_framework import status, generics, permissions
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import LoginSerializer
-from rest_framework import generics, permissions
-from .models import CustomUser, Withdrawal, Commission, CashoutRequest
 from django.db.models import Sum
 from decimal import Decimal
-from .serializers import CashoutRequestSerializer
-from rest_framework.permissions import IsAuthenticated
-from .models import MarketingMaterial
-from .serializers import MarketingMaterialSerializer
-from rest_framework import generics, permissions
-from .models import Product, AffiliateLink, Order, Commission
-from .serializers import ProductSerializer, AffiliateLinkSerializer, OrderSerializer
 
+from .serializers import (
+    RegisterSerializer, ProfileSerializer, DashboardSerializer,
+    LoginSerializer, CashoutRequestSerializer,
+    MarketingMaterialSerializer, ProductSerializer,
+    AffiliateLinkSerializer, OrderSerializer
+)
+from .models import (
+    CustomUser, Withdrawal, Commission, CashoutRequest,
+    MarketingMaterial, Product, AffiliateLink, Order
+)
+from rest_framework.permissions import IsAuthenticated
+
+
+# --------------------- DASHBOARD ---------------------
+from collections import defaultdict
+from decimal import Decimal
+from django.db.models import Sum
+
+class DashboardView(generics.GenericAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
+
+        # 1) High-level counters
+        total_earnings = user.balance
+        total_referrals = user.referral_made.count()
+
+        pending_withdrawals = Withdrawal.objects.filter(
+            user=user, status='pending'
+        ).aggregate(total=Sum('amount'))['total'] or 0
+
+        # ✔ Show the *available* commission (what the user can withdraw now)
+        available_commission = user.commission_balance
+
+        # 2) Total approved cashout (for your "Total Cashed Out" figure)
+        total_cashout = CashoutRequest.objects.filter(
+            user=user, status='approved'
+        ).aggregate(total=Sum('net_amount'))['total'] or 0
+
+        # 3) Build a running-balance history for the chart
+        #    + Commission rows add to balance
+        #    + Cashout requests subtract from balance
+        # NOTE: Your current CreateView *already deducts at request time*,
+        # so we subtract on created_at for BOTH pending & approved requests.
+        # If you later switch to "deduct on approval only", change the date
+        # below to use `updated_at` for approved requests.
+        events_by_date = defaultdict(Decimal)
+
+        # + commissions
+        for c in Commission.objects.filter(user=user).only("amount", "created_at"):
+            events_by_date[c.created_at.date()] += Decimal(c.amount)
+
+        # - cashouts (subtract requested_amount)
+        for co in CashoutRequest.objects.filter(user=user).exclude(status='rejected').only(
+            "requested_amount", "status", "created_at", "updated_at"
+        ):
+            # current behavior (deduct on request):
+            date_for_event = co.created_at.date()
+
+            # If you later deduct on approval only, use:
+            # date_for_event = (co.updated_at.date() if co.status == "approved" else None)
+            # if date_for_event is None: continue
+
+            events_by_date[date_for_event] -= Decimal(co.requested_amount)
+
+        # turn events into a sorted running balance
+        history = []
+        running = Decimal("0.00")
+        for d in sorted(events_by_date.keys()):
+            running += events_by_date[d]
+            history.append({
+                "date": d.isoformat(),
+                "amount": float(running)  # chart expects simple numbers
+            })
+
+        # 4) Optional: keep your old pending_commissions if something in FE reads it
+        pending_commissions = Commission.objects.filter(
+            user=user, status='pending'
+        ).aggregate(total=Sum('amount'))['total'] or 0
+
+        # 5) Cashout history for the table
+        cashouts = CashoutRequest.objects.filter(user=user).order_by("-created_at")
+        cashout_history = [
+            {
+                "date": c.created_at.strftime("%Y-%m-%d"),
+                "requested": float(c.requested_amount),
+                "net": float(c.net_amount),
+                "status": c.status,
+            }
+            for c in cashouts
+        ]
+
+        return Response({
+            "total_earnings": total_earnings,
+            "total_referrals": total_referrals,
+            "pending_withdrawals": pending_withdrawals,
+            "pending_commissions": pending_commissions,   # keep for backward-compat
+            "available_commission": float(available_commission),  # ✅ new: what matters
+            "total_cashout": float(total_cashout),
+            "commission_history": history,                # ✅ now a running balance
+            "cashout_history": cashout_history,           # ✅ to fill your table
+        })
+
+
+
+# --------------------- PRODUCTS & ORDERS ---------------------
 class PlaceOrderView(generics.CreateAPIView):
     serializer_class = OrderSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def perform_create(self, serializer):
-        # Attach affiliate automatically
         serializer.save(affiliate=self.request.user)
 
-# View all products
+
 class ProductListView(generics.ListAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-# Get or create affiliate link for a product
+
 class GetAffiliateLinkView(generics.RetrieveAPIView):
     serializer_class = AffiliateLinkSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -45,6 +140,8 @@ class GetAffiliateLinkView(generics.RetrieveAPIView):
         )
         return link
 
+
+# --------------------- MARKETING MATERIALS ---------------------
 class MarketingMaterialsView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -52,15 +149,17 @@ class MarketingMaterialsView(APIView):
         materials = MarketingMaterial.objects.all().order_by("-uploaded_at")
         serializer = MarketingMaterialSerializer(materials, many=True)
 
-        # Group by type
         grouped = {"image": [], "video": [], "pdf": []}
         for item in serializer.data:
             grouped[item["material_type"]].append(item)
 
         return Response(grouped)
 
+
+# --------------------- CASHOUT ---------------------
 MINIMUM_CASHOUT_THRESHOLD = Decimal('5000.00')
 PROCESSING_FEE = Decimal('1000.00')
+
 
 class CashoutRequestCreateView(generics.CreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -92,11 +191,11 @@ class CashoutRequestCreateView(generics.CreateAPIView):
             status='pending',
         )
 
-        # Deduct requested amount from user's commission balance immediately
+        # Deduct requested amount immediately
         user.commission_balance -= requested_amount
         user.save()
 
-        # Return updated commission balance and cashout history
+        # Return updated balance + history
         cashout_history = CashoutRequest.objects.filter(user=user).order_by('-created_at')
         serializer = CashoutRequestSerializer(cashout_history, many=True)
 
@@ -105,6 +204,8 @@ class CashoutRequestCreateView(generics.CreateAPIView):
             "cashout_history": serializer.data,
         }, status=status.HTTP_201_CREATED)
 
+
+# --------------------- PROFILE ---------------------
 class ProfileView(generics.RetrieveUpdateAPIView):
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = ProfileSerializer
@@ -112,39 +213,8 @@ class ProfileView(generics.RetrieveUpdateAPIView):
     def get_object(self):
         return self.request.user
 
-class DashboardView(generics.GenericAPIView):
-    permission_classes = [permissions.IsAuthenticated]
-    serializer_class = DashboardSerializer
 
-    def get(self, request, *args, **kwargs):
-        user = request.user
-        total_earnings = user.balance
-
-        # Correct related_name for referrals made by the user
-        total_referrals = user.referral_made.count()
-
-        # Sum of pending withdrawals
-        pending_withdrawals = Withdrawal.objects.filter(
-            user=user,
-            status='pending'
-        ).aggregate(total=Sum('amount'))['total'] or 0
-
-        # Sum of pending commissions
-        pending_commissions = Commission.objects.filter(
-            user=user,
-            status='pending'
-        ).aggregate(total=Sum('amount'))['total'] or 0
-
-        data = {
-            "total_earnings": total_earnings,
-            "total_referrals": total_referrals,
-            "pending_withdrawals": pending_withdrawals,
-            "pending_commissions": pending_commissions,
-        }
-
-        serializer = self.get_serializer(data)
-        return Response(serializer.data)
-
+# --------------------- AUTH ---------------------
 @api_view(["POST"])
 def login_user(request):
     serializer = LoginSerializer(data=request.data)
@@ -161,6 +231,7 @@ def login_user(request):
             }
         })
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 @api_view(["POST"])
 def register_user(request):

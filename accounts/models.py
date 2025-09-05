@@ -118,6 +118,7 @@ class CashoutRequest(models.Model):
     processing_fee = models.DecimalField(max_digits=10, decimal_places=2, default=1000.00)
     net_amount = models.DecimalField(max_digits=10, decimal_places=2)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    processed = models.BooleanField(default=False)  # ✅ NEW field
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -128,6 +129,7 @@ class CashoutRequest(models.Model):
 
     def __str__(self):
         return f"{self.user.username} requested {self.requested_amount} ({self.status})"
+
     
 class MarketingMaterial(models.Model):
     MATERIAL_TYPES = [
