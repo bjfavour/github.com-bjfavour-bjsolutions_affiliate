@@ -40,9 +40,10 @@ document.addEventListener("DOMContentLoaded", () => {
       localStorage.setItem("access", data.access);
       localStorage.setItem("refresh", data.refresh);
 
-      // ✅ Save user info if backend provides it
+      // ✅ Save user info and username separately
       if (data.user) {
         localStorage.setItem("user", JSON.stringify(data.user));
+        localStorage.setItem("username", data.user.username); // ✅ Save username for affiliate links
       }
 
       errormessage.style.color = "green";
