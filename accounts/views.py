@@ -167,6 +167,24 @@ class CashoutRequestCreateView(generics.CreateAPIView):
 
     def create(self, request, *args, **kwargs):
         user = request.user
+
+        # ✅ NEW: handle action=history
+        action = request.data.get("action")
+        if action == "history":
+            cashout_history = CashoutRequest.objects.filter(user=user).order_by('-created_at')
+            serializer = CashoutRequestSerializer(cashout_history, many=True)
+
+            total_cashout = CashoutRequest.objects.filter(
+                user=user, status='approved'
+            ).aggregate(total=Sum('net_amount'))['total'] or 0
+
+            return Response({
+                "commission_balance": user.commission_balance,
+                "total_cashout": float(total_cashout),
+                "cashout_history": serializer.data,
+            })
+
+        # ✅ Normal POST (requesting a new cashout)
         requested_amount = Decimal(request.data.get('requested_amount', '0'))
 
         if user.commission_balance < MINIMUM_CASHOUT_THRESHOLD:
@@ -199,10 +217,16 @@ class CashoutRequestCreateView(generics.CreateAPIView):
         cashout_history = CashoutRequest.objects.filter(user=user).order_by('-created_at')
         serializer = CashoutRequestSerializer(cashout_history, many=True)
 
+        total_cashout = CashoutRequest.objects.filter(
+            user=user, status='approved'
+        ).aggregate(total=Sum('net_amount'))['total'] or 0
+
         return Response({
             "commission_balance": user.commission_balance,
+            "total_cashout": float(total_cashout),
             "cashout_history": serializer.data,
         }, status=status.HTTP_201_CREATED)
+
 
 
 # --------------------- PROFILE ---------------------

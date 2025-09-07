@@ -100,12 +100,15 @@ async function loadDashboard() {
 // ================= CASHOUT =================
 async function loadCashoutHistory() {
   try {
+    // ✅ use POST with action=history
     const res = await fetch(`${API_BASE}/cashout/`, {
-      headers: authHeaders()
+      method: "POST",
+      headers: authHeaders({ "Content-Type": "application/json" }),
+      body: JSON.stringify({ action: "history" })
     });
     if (!res.ok) throw new Error("Failed to fetch cashout history");
 
-    const data = await res.json(); // contains commission_balance + cashout_history
+    const data = await res.json(); 
     const history = data.cashout_history || [];
 
     const tbody = document.getElementById("cashoutTableBody");
@@ -113,9 +116,9 @@ async function loadCashoutHistory() {
     history.forEach(row => {
       tbody.innerHTML += `
         <tr>
-          <td>${row.requested_amount}</td>
-          <td>${row.processing_fee}</td>
-          <td>${row.net_amount}</td>
+          <td>₦${parseFloat(row.requested_amount).toLocaleString()}</td>
+          <td>₦${parseFloat(row.processing_fee).toLocaleString()}</td>
+          <td>₦${parseFloat(row.net_amount).toLocaleString()}</td>
           <td>${row.date}</td>
           <td>${row.status}</td>
         </tr>
@@ -123,23 +126,33 @@ async function loadCashoutHistory() {
     });
 
   } catch (err) {
-    console.error("Error loading history", err);
+    console.error("Error loading cashout history", err);
   }
 }
 
+// Cashout form submit with validation
 document.getElementById("cashoutForm").addEventListener("submit", async (e) => {
   e.preventDefault();
-  const amount = document.getElementById("cashoutAmount").value;
+  const amount = parseFloat(document.getElementById("cashoutAmount").value);
+  const processingFee = 1000;
+
+  if (isNaN(amount) || amount <= processingFee) {
+    alert(`Amount must be greater than ₦${processingFee}`);
+    return;
+  }
+
   try {
     const res = await fetch(`${API_BASE}/cashout/`, {
       method: "POST",
       headers: authHeaders({ "Content-Type": "application/json" }),
-      body: JSON.stringify({ requested_amount: amount }) // ✅ must match backend
+      body: JSON.stringify({ requested_amount: amount })
     });
+
     if (!res.ok) {
       const errData = await res.json();
       throw new Error(errData.detail || "Cashout request failed");
     }
+
     alert("Cashout requested successfully!");
     loadDashboard();
     loadCashoutHistory();
