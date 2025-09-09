@@ -40,8 +40,8 @@ document.addEventListener("DOMContentLoaded", function () {
         const price = parseFloat(product.price).toLocaleString();
         const commission = parseFloat(product.commission_amount).toLocaleString();
 
-        // ✅ Use unique username for affiliate link
-        const affiliateLink = `http://127.0.0.1:8000/product/${product.id}/?ref=${username}`;
+        // ✅ Now point to frontend details page
+        const affiliateLink = `product_details.html?product_id=${product.id}&ref=${username}`;
 
         const imageUrl = product.picture
           ? product.picture
@@ -57,7 +57,7 @@ document.addEventListener("DOMContentLoaded", function () {
               <p class="affiliate-link mt-auto"><strong>Link:</strong><br>
                 <a href="${affiliateLink}" target="_blank">${affiliateLink}</a>
               </p>
-              <a href="${affiliateLink}" target="_blank" class="btn btn-primary mt-2">Promote</a>
+              <a href="${affiliateLink}" class="btn btn-primary mt-2">Promote</a>
             </div>
           </div>
         `;

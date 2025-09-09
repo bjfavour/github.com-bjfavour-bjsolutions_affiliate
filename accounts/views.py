@@ -1,3 +1,4 @@
+# accounts/views.py
 from rest_framework.decorators import api_view
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -5,6 +6,8 @@ from rest_framework import status, generics, permissions
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.db.models import Sum
 from decimal import Decimal
+
+from rest_framework.parsers import MultiPartParser, FormParser
 
 from .serializers import (
     RegisterSerializer, ProfileSerializer, DashboardSerializer,
@@ -17,7 +20,6 @@ from .models import (
     MarketingMaterial, Product, AffiliateLink, Order
 )
 from rest_framework.permissions import IsAuthenticated
-
 
 # --------------------- DASHBOARD ---------------------
 from collections import defaultdict
@@ -38,21 +40,15 @@ class DashboardView(generics.GenericAPIView):
             user=user, status='pending'
         ).aggregate(total=Sum('amount'))['total'] or 0
 
-        # ✔ Show the *available* commission (what the user can withdraw now)
+        # ✔ Show the *available* commission
         available_commission = user.commission_balance
 
-        # 2) Total approved cashout (for your "Total Cashed Out" figure)
+        # 2) Total approved cashout
         total_cashout = CashoutRequest.objects.filter(
             user=user, status='approved'
         ).aggregate(total=Sum('net_amount'))['total'] or 0
 
-        # 3) Build a running-balance history for the chart
-        #    + Commission rows add to balance
-        #    + Cashout requests subtract from balance
-        # NOTE: Your current CreateView *already deducts at request time*,
-        # so we subtract on created_at for BOTH pending & approved requests.
-        # If you later switch to "deduct on approval only", change the date
-        # below to use `updated_at` for approved requests.
+        # 3) Build running-balance history
         events_by_date = defaultdict(Decimal)
 
         # + commissions
@@ -63,13 +59,7 @@ class DashboardView(generics.GenericAPIView):
         for co in CashoutRequest.objects.filter(user=user).exclude(status='rejected').only(
             "requested_amount", "status", "created_at", "updated_at"
         ):
-            # current behavior (deduct on request):
             date_for_event = co.created_at.date()
-
-            # If you later deduct on approval only, use:
-            # date_for_event = (co.updated_at.date() if co.status == "approved" else None)
-            # if date_for_event is None: continue
-
             events_by_date[date_for_event] -= Decimal(co.requested_amount)
 
         # turn events into a sorted running balance
@@ -79,15 +69,15 @@ class DashboardView(generics.GenericAPIView):
             running += events_by_date[d]
             history.append({
                 "date": d.isoformat(),
-                "amount": float(running)  # chart expects simple numbers
+                "amount": float(running)
             })
 
-        # 4) Optional: keep your old pending_commissions if something in FE reads it
+        # 4) Keep pending_commissions for compatibility
         pending_commissions = Commission.objects.filter(
             user=user, status='pending'
         ).aggregate(total=Sum('amount'))['total'] or 0
 
-        # 5) Cashout history for the table
+        # 5) Cashout history
         cashouts = CashoutRequest.objects.filter(user=user).order_by("-created_at")
         cashout_history = [
             {
@@ -103,28 +93,44 @@ class DashboardView(generics.GenericAPIView):
             "total_earnings": total_earnings,
             "total_referrals": total_referrals,
             "pending_withdrawals": pending_withdrawals,
-            "pending_commissions": pending_commissions,   # keep for backward-compat
-            "available_commission": float(available_commission),  # ✅ new: what matters
+            "pending_commissions": pending_commissions,
+            "available_commission": float(available_commission),
             "total_cashout": float(total_cashout),
-            "commission_history": history,                # ✅ now a running balance
-            "cashout_history": cashout_history,           # ✅ to fill your table
+            "commission_history": history,
+            "cashout_history": cashout_history,
         })
-
 
 
 # --------------------- PRODUCTS & ORDERS ---------------------
 class PlaceOrderView(generics.CreateAPIView):
+    """
+    Public endpoint for customers (unauthenticated) to submit an order.
+    The serializer expects 'affiliate_username' (write-only) in the incoming data.
+    Accepts multipart/form-data for proof_of_payment file upload.
+    """
     serializer_class = OrderSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
+    parser_classes = [MultiPartParser, FormParser]
 
-    def perform_create(self, serializer):
-        serializer.save(affiliate=self.request.user)
-
+    # No perform_create override — serializer.create() handles affiliate lookup.
 
 class ProductListView(generics.ListAPIView):
+    """
+    Authenticated endpoint for affiliates to list products.
+    """
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+
+class ProductDetailView(generics.RetrieveAPIView):
+    """
+    Public product detail view so customers can view product info without login.
+    URL: /api/accounts/products/<pk>/
+    """
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+    permission_classes = [permissions.AllowAny]
 
 
 class GetAffiliateLinkView(generics.RetrieveAPIView):
@@ -184,7 +190,7 @@ class CashoutRequestCreateView(generics.CreateAPIView):
                 "cashout_history": serializer.data,
             })
 
-        # ✅ Normal POST (requesting a new cashout)
+        # ✅ Normal POST
         requested_amount = Decimal(request.data.get('requested_amount', '0'))
 
         if user.commission_balance < MINIMUM_CASHOUT_THRESHOLD:
@@ -226,7 +232,6 @@ class CashoutRequestCreateView(generics.CreateAPIView):
             "total_cashout": float(total_cashout),
             "cashout_history": serializer.data,
         }, status=status.HTTP_201_CREATED)
-
 
 
 # --------------------- PROFILE ---------------------

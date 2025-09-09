@@ -159,10 +159,32 @@ class AffiliateLinkSerializer(serializers.ModelSerializer):
 
 # ✅ ORDER
 class OrderSerializer(serializers.ModelSerializer):
+    product_name = serializers.CharField(source="product.name", read_only=True)
+    affiliate_username = serializers.CharField(write_only=True, required=True)
+    affiliate_display = serializers.CharField(source="affiliate.username", read_only=True)
+
     class Meta:
         model = Order
         fields = [
-            "id", "product", "buyer_name", "buyer_email", "buyer_phone",
-            "payment_method", "proof_of_payment", "status", "created_at"
+            "id",
+            "product",
+            "product_name",
+            "affiliate_username",   # for incoming data (ref)
+            "affiliate_display",    # for showing in responses
+            "buyer_phone",
+            "payment_method",
+            "proof_of_payment",
+            "status",
+            "created_at",
         ]
-        read_only_fields = ["status", "created_at"]
+        read_only_fields = ["status", "created_at", "affiliate_display"]
+
+    def create(self, validated_data):
+        affiliate_username = validated_data.pop("affiliate_username", None)
+        try:
+            affiliate = CustomUser.objects.get(username=affiliate_username)
+        except CustomUser.DoesNotExist:
+            raise serializers.ValidationError({"affiliate_username": "Invalid affiliate username."})
+
+        order = Order.objects.create(affiliate=affiliate, **validated_data)
+        return order
