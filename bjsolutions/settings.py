@@ -2,19 +2,34 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
+# Load environment variables
 load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# SECURITY
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "insecure-key")
 DEBUG = os.getenv("DEBUG", "False") == "True"
 
+# ALLOWED HOSTS
 ALLOWED_HOSTS = [
-    "web-production-fd93.up.railway.app",  # replace with your Railway domain
+    "web-production-fd93.up.railway.app",  # your Railway domain
 ]
 
+# CSRF & Proxy settings for Railway
+CSRF_TRUSTED_ORIGINS = [
+    "https://web-production-fd93.up.railway.app",
+]
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+# Optionally for testing if HTTPS issues persist
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = False
+
+# Custom user model
 AUTH_USER_MODEL = "accounts.CustomUser"
 
+# Installed apps
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -30,6 +45,7 @@ INSTALLED_APPS = [
     "commissions",
 ]
 
+# Middleware
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
@@ -42,6 +58,20 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
+# DRF & JWT
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    )
+}
+
+# CORS allowed origins
+CORS_ALLOWED_ORIGINS = [
+    "https://bjsolutions.com.ng",
+    "https://web-production-fd93.up.railway.app",
+]
+
+# URLs & templates
 ROOT_URLCONF = "bjsolutions.urls"
 
 TEMPLATES = [
@@ -61,6 +91,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "bjsolutions.wsgi.application"
 
+# Database
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
@@ -72,11 +103,28 @@ DATABASES = {
     }
 }
 
+# Password validators
+AUTH_PASSWORD_VALIDATORS = [
+    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
+]
+
+# Internationalization
+LANGUAGE_CODE = "en-us"
+TIME_ZONE = "UTC"
+USE_I18N = True
+USE_TZ = True
+
+# Static files (WhiteNoise)
 STATIC_URL = "/static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
+# Media files
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
+# Default PK
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
