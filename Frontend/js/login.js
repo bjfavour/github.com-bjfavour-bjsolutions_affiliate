@@ -4,6 +4,7 @@ const errormessage = document.getElementById("errormessage");
 document.addEventListener("DOMContentLoaded", () => {
   const loginButton = document.querySelector(".button1");
 
+  // ✅ LOGIN FUNCTIONALITY
   loginButton.addEventListener("click", async (e) => {
     e.preventDefault();
 
@@ -30,7 +31,7 @@ document.addEventListener("DOMContentLoaded", () => {
         body: JSON.stringify({ identifier: username, password })
       });
 
-      const data = await response.json(); // ✅ only once
+      const data = await response.json();
 
       if (!response.ok) {
         throw new Error(data.detail || "Login failed.");
@@ -43,7 +44,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // ✅ Save user info and username separately
       if (data.user) {
         localStorage.setItem("user", JSON.stringify(data.user));
-        localStorage.setItem("username", data.user.username); // ✅ Save username for affiliate links
+        localStorage.setItem("username", data.user.username);
       }
 
       errormessage.style.color = "green";
@@ -57,4 +58,24 @@ document.addEventListener("DOMContentLoaded", () => {
       errormessage.textContent = err.message;
     }
   });
+
+  // ✅ Trigger login on Enter key
+  document.querySelectorAll(".userinput").forEach((input) => {
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        loginButton.click(); // simulate button click
+      }
+    });
+  });
+
+  // ✅ HAMBURGER MENU TOGGLE
+  const menuBtn = document.querySelector(".bi-list");
+  const navMenu = document.querySelector(".nav_display2");
+
+  if (menuBtn && navMenu) {
+    menuBtn.addEventListener("click", () => {
+      navMenu.style.display = (navMenu.style.display === "block") ? "none" : "block";
+    });
+  }
 });
