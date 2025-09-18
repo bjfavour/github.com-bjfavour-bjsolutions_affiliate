@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "accounts",
     "products",
     "commissions",
+    'whitenoise.runserver_nostatic', 
 ]
 
 # Middleware
