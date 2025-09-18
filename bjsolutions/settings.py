@@ -2,21 +2,21 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
-# Load environment variables
 load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "insecure-key")  
-
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "insecure-key")
 DEBUG = os.getenv("DEBUG", "False") == "True"
 
-# Railway will inject your domain into ALLOWED_HOSTS
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = [
+    "bjsolutions-production.up.railway.app",
+    "127.0.0.1",
+    "localhost",
+]
 
-AUTH_USER_MODEL = 'accounts.CustomUser'
+AUTH_USER_MODEL = "accounts.CustomUser"
 
-# Installed apps
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -35,7 +35,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",   # ✅ Add this for static files
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -50,9 +50,8 @@ REST_FRAMEWORK = {
     )
 }
 
-CORS_ALLOW_ALL_ORIGINS = True  # (later restrict to your domain)
+CORS_ALLOW_ALL_ORIGINS = True
 
-# Templates
 ROOT_URLCONF = "bjsolutions.urls"
 
 TEMPLATES = [
@@ -72,7 +71,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "bjsolutions.wsgi.application"
 
-# Database (Railway injects env vars)
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
@@ -84,7 +82,6 @@ DATABASES = {
     }
 }
 
-# Password validators
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
@@ -92,19 +89,17 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
-# Internationalization
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
 
-# ✅ Static & Media files
 STATIC_URL = "/static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
-
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
+# ✅ Use Railway Volume for media
 MEDIA_URL = "/media/"
-MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+MEDIA_ROOT = "/app/media"  # Mounted Railway Volume path
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
