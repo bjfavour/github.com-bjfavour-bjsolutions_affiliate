@@ -45,7 +45,7 @@ INSTALLED_APPS = [
     "accounts",
     "products",
     "commissions",
-    "storages",  # ✅ for Cloudflare R2
+    "storages",  # ✅ Cloudflare R2
 ]
 
 # Middleware
@@ -120,20 +120,22 @@ TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
 
-# ✅ Cloudflare R2 settings
+# ✅ Cloudflare R2 (public bucket)
+R2_PUBLIC_URL = "https://pub-1abacb149a9d4e539e77233675a9fa8f.r2.dev"
+
 AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
 AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME", "bjsolutions")
-AWS_S3_ENDPOINT_URL = os.getenv("AWS_S3_ENDPOINT_URL")  # e.g. https://<accountid>.r2.cloudflarestorage.com
+AWS_S3_ENDPOINT_URL = os.getenv("AWS_S3_ENDPOINT_URL")  # private API endpoint (not used for public access)
 AWS_QUERYSTRING_AUTH = False  # make files public
 
 # Storage backends
 DEFAULT_FILE_STORAGE = "bjsolutions.storage_backends.MediaStorage"
 STATICFILES_STORAGE = "bjsolutions.storage_backends.StaticStorage"
 
-# URLs for static & media
-STATIC_URL = f"{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/static/"
-MEDIA_URL = f"{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/media/"
+# ✅ Use public URL for serving files
+STATIC_URL = f"{R2_PUBLIC_URL}/static/"
+MEDIA_URL = f"{R2_PUBLIC_URL}/media/"
 
 # Default PK
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
