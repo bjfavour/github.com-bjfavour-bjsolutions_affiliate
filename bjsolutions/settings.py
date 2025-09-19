@@ -10,20 +10,18 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY
-SECRET_KEY = os.getenv("SECRET_KEY", "fallback-secret-key")
-DEBUG = os.getenv("DEBUG", "False").lower() == "true"
+SECRET_KEY = os.getenv("SECRET_KEY", "your-local-fallback-secret-key")
+DEBUG = True  # Always True for local development
 
 # Hosts
 ALLOWED_HOSTS = [
     "127.0.0.1",
     "localhost",
-    "bjfavour.pythonanywhere.com",  # Replace with your actual PythonAnywhere username
-    "bjsolutions.com.ng",
 ]
 
 # Application definition
 INSTALLED_APPS = [
-    # Django default
+    # Django default apps
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -53,12 +51,14 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = "bj_solutions.urls"
+ROOT_URLCONF = "bjsolutions.urls"
+WSGI_APPLICATION = "bjsolutions.wsgi.application"
 
+# Templates
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "templates"],
+        "DIRS": [BASE_DIR / "templates"],  # optional
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -71,9 +71,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "bj_solutions.wsgi.application"
-
-# Database (SQLite for PythonAnywhere free plan)
+# Database
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
@@ -89,7 +87,7 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
-# Custom User Model
+# Custom User model
 AUTH_USER_MODEL = "accounts.CustomUser"
 
 # Internationalization
@@ -106,13 +104,16 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
+# CORS for local frontend
+CORS_ALLOW_ALL_ORIGINS = True  # ✅ Important for JS fetch
+
 # Django REST Framework
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
     "DEFAULT_PERMISSION_CLASSES": (
-        "rest_framework.permissions.IsAuthenticated",
+        "rest_framework.permissions.AllowAny",  # ✅ Allow login without auth
     ),
 }
 
