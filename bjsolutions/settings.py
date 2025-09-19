@@ -46,7 +46,6 @@ INSTALLED_APPS = [
     "products",
     "commissions",
     "storages",  # ✅ required for Cloudflare R2
-    "whitenoise.runserver_nostatic",
 ]
 
 # Middleware
@@ -121,29 +120,24 @@ TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
 
-# ✅ Cloudflare R2 settings
-AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID", "bb0d5d951a19e02ed2159a617f8434a3")
-AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY", "2b36c6621107726abe3656d0bc23eb1e2cc36aa359857b15d43dae419a660c50")
-AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME", "bjsolutions")
-AWS_S3_ENDPOINT_URL = os.getenv(
-    "AWS_S3_ENDPOINT_URL",
-    "https://133b31f32b36e2f6a915f530d16870d8.r2.cloudflarestorage.com"
-)
+# ✅ Cloudflare R2 settings (hardcoded for now so you can test quickly)
+AWS_ACCESS_KEY_ID = "bb0d5d951a19e02ed2159a617f8434a3"
+AWS_SECRET_ACCESS_KEY = "2b36c6621107726abe3656d0bc23eb1e2cc36aa359857b15d43dae419a660c50"
+AWS_STORAGE_BUCKET_NAME = "bjsolutions"
+AWS_S3_ENDPOINT_URL = "https://133b31f32b36e2f6a915f530d16870d8.r2.cloudflarestorage.com"
 
 STORAGES = {
-    "default": {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    "default": {  # ✅ media files go to R2
+        "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
     },
-    "staticfiles": {
+    "staticfiles": {  # ✅ static files go to R2
         "BACKEND": "storages.backends.s3boto3.S3StaticStorage",
     },
 }
 
-STATIC_URL = f"{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/"
-
-# Media files (still local unless you want them in R2 too)
-MEDIA_URL = "/media/"
-MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+# URLs for static & media on R2
+STATIC_URL = f"{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/static/"
+MEDIA_URL = f"{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/media/"
 
 # Default PK
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
