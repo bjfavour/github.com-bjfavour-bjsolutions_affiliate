@@ -1,59 +1,51 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+from datetime import timedelta
 
 # Load environment variables
 load_dotenv()
 
+# Base directory
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "insecure-key")
-DEBUG = os.getenv("DEBUG", "False") == "True"
+SECRET_KEY = os.getenv("SECRET_KEY", "fallback-secret-key")
+DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 
-# ALLOWED HOSTS
+# Hosts
 ALLOWED_HOSTS = [
-    "web-production-fd93.up.railway.app",  # Railway domain
-    "bjsolutions.com.ng",                  # Custom domain
+    "127.0.0.1",
+    "localhost",
+    "bjfavour.pythonanywhere.com",  # Replace with your actual PythonAnywhere username
+    "bjsolutions.com.ng",
 ]
 
-# CSRF & Proxy settings
-CSRF_TRUSTED_ORIGINS = [
-    "https://web-production-fd93.up.railway.app",
-    "https://bjsolutions.com.ng",
-]
-SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-
-# Disable HTTPS-only cookies during testing (set to True in production!)
-SESSION_COOKIE_SECURE = False
-CSRF_COOKIE_SECURE = False
-
-# Custom user model
-AUTH_USER_MODEL = "accounts.CustomUser"
-
-# Installed apps
+# Application definition
 INSTALLED_APPS = [
+    # Django default
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "rest_framework",
-    "rest_framework_simplejwt",
-    "corsheaders",
+
+    # Your apps
     "accounts",
     "products",
     "commissions",
-    "storages",  # ✅ for Cloudflare R2 (media only)
+
+    # Third-party
+    "rest_framework",
+    "rest_framework_simplejwt",
+    "corsheaders",
 ]
 
-# Middleware
 MIDDLEWARE = [
-    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -61,29 +53,16 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-# DRF & JWT
-REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
-    )
-}
-
-# CORS
-CORS_ALLOWED_ORIGINS = [
-    "https://bjsolutions.com.ng",
-    "https://web-production-fd93.up.railway.app",
-]
-
-# URLs & templates
-ROOT_URLCONF = "bjsolutions.urls"
+ROOT_URLCONF = "bj_solutions.urls"
 
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
+                "django.template.context_processors.debug",
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
@@ -92,21 +71,17 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "bjsolutions.wsgi.application"
+WSGI_APPLICATION = "bj_solutions.wsgi.application"
 
-# Database
+# Database (SQLite for PythonAnywhere free plan)
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("PGDATABASE"),
-        "USER": os.getenv("PGUSER"),
-        "PASSWORD": os.getenv("PGPASSWORD"),
-        "HOST": os.getenv("PGHOST"),
-        "PORT": os.getenv("PGPORT"),
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
     }
 }
 
-# Password validators
+# Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
@@ -114,26 +89,40 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
+# Custom User Model
+AUTH_USER_MODEL = "accounts.CustomUser"
+
 # Internationalization
 LANGUAGE_CODE = "en-us"
-TIME_ZONE = "UTC"
+TIME_ZONE = "Africa/Lagos"
 USE_I18N = True
 USE_TZ = True
 
-# ✅ Cloudflare R2 for media only
-AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
-AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
-AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME", "bjsolutions")
-AWS_S3_ENDPOINT_URL = os.getenv("AWS_S3_ENDPOINT_URL")  # e.g. https://<accountid>.r2.cloudflarestorage.com
-AWS_QUERYSTRING_AUTH = False  # make files public
-
-# Media storage → R2
-DEFAULT_FILE_STORAGE = "bjsolutions.storage_backends.MediaStorage"
-MEDIA_URL = f"{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/media/"
-
-# Static files → local
+# Static files
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-# Default PK
+# Media files
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
+
+# Django REST Framework
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ),
+    "DEFAULT_PERMISSION_CLASSES": (
+        "rest_framework.permissions.IsAuthenticated",
+    ),
+}
+
+# Simple JWT
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+}
+
+# Default primary key field type
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
