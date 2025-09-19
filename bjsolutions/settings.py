@@ -13,18 +13,18 @@ DEBUG = os.getenv("DEBUG", "False") == "True"
 
 # ALLOWED HOSTS
 ALLOWED_HOSTS = [
-    "web-production-fd93.up.railway.app",  # your Railway domain
-    "bjsolutions.com.ng",  # your frontend domain
+    "web-production-fd93.up.railway.app",  # Railway domain
+    "bjsolutions.com.ng",                  # Custom domain
 ]
 
-# CSRF & Proxy settings for Railway
+# CSRF & Proxy settings
 CSRF_TRUSTED_ORIGINS = [
     "https://web-production-fd93.up.railway.app",
     "https://bjsolutions.com.ng",
 ]
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
-# Optionally for testing if HTTPS issues persist
+# Disable HTTPS-only cookies during testing (set to True in production!)
 SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = False
 
@@ -45,7 +45,7 @@ INSTALLED_APPS = [
     "accounts",
     "products",
     "commissions",
-    "storages",  # ✅ required for Cloudflare R2
+    "storages",  # ✅ for Cloudflare R2
 ]
 
 # Middleware
@@ -68,7 +68,7 @@ REST_FRAMEWORK = {
     )
 }
 
-# CORS allowed origins
+# CORS
 CORS_ALLOWED_ORIGINS = [
     "https://bjsolutions.com.ng",
     "https://web-production-fd93.up.railway.app",
@@ -120,22 +120,18 @@ TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
 
-# ✅ Cloudflare R2 settings (hardcoded for now so you can test quickly)
-AWS_ACCESS_KEY_ID = "bb0d5d951a19e02ed2159a617f8434a3"
-AWS_SECRET_ACCESS_KEY = "2b36c6621107726abe3656d0bc23eb1e2cc36aa359857b15d43dae419a660c50"
-AWS_STORAGE_BUCKET_NAME = "bjsolutions"
-AWS_S3_ENDPOINT_URL = "https://133b31f32b36e2f6a915f530d16870d8.r2.cloudflarestorage.com"
+# ✅ Cloudflare R2 settings
+AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
+AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME", "bjsolutions")
+AWS_S3_ENDPOINT_URL = os.getenv("AWS_S3_ENDPOINT_URL")  # e.g. https://<accountid>.r2.cloudflarestorage.com
+AWS_QUERYSTRING_AUTH = False  # make files public
 
-STORAGES = {
-    "default": {  # ✅ media files go to R2
-        "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
-    },
-    "staticfiles": {  # ✅ static files go to R2
-        "BACKEND": "storages.backends.s3boto3.S3StaticStorage",
-    },
-}
+# Storage backends
+DEFAULT_FILE_STORAGE = "bjsolutions.storage_backends.MediaStorage"
+STATICFILES_STORAGE = "bjsolutions.storage_backends.StaticStorage"
 
-# URLs for static & media on R2
+# URLs for static & media
 STATIC_URL = f"{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/static/"
 MEDIA_URL = f"{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/media/"
 
