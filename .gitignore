@@ -1,19 +1,2 @@
-# Virtual environments
-venv/
-bjenv/
 .env
-
-# Python cache
-__pycache__/
-*.pyc
-
-# SQLite databases
-*.sqlite3
-
-# Static and media (generated files)
-staticfiles/
-media/
-
-# OS files
-.DS_Store
-Thumbs.db
+bjenv

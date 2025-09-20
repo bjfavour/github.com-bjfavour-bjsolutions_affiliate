@@ -42,6 +42,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -72,10 +73,21 @@ TEMPLATES = [
 ]
 
 # Database
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.sqlite3",
+#         "NAME": BASE_DIR / "db.sqlite3",
+#     }
+# }
+
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv("DB_NAME"),  # Replace with your PostgreSQL database name
+        'USER': os.getenv("DB_USER"),  # Replace with your PostgreSQL username
+        'PASSWORD': os.getenv("DB_PASSWORD"),  # Replace with your PostgreSQL password
+        'HOST': os.getenv("DB_HOST"),  # Or the IP address/hostname of your PostgreSQL server
+        'PORT': os.getenv("DB_PORT"),  # Default PostgreSQL port, or your custom port
     }
 }
 
@@ -99,6 +111,7 @@ USE_TZ = True
 # Static files
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILE_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Media files
 MEDIA_URL = "/media/"
