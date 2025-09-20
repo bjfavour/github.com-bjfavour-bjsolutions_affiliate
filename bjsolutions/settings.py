@@ -53,6 +53,10 @@ MIDDLEWARE = [
 ROOT_URLCONF = "bjsolutions.urls"
 WSGI_APPLICATION = "bjsolutions.wsgi.application"
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://web-production-bd862.up.railway.app",
+]
+
 # Templates
 TEMPLATES = [
     {
