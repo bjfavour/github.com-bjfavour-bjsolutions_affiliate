@@ -14,10 +14,8 @@ SECRET_KEY = os.getenv("SECRET_KEY", "your-local-fallback-secret-key")
 DEBUG = True  # Always True for local development
 
 # Hosts
-ALLOWED_HOSTS = [
-    "127.0.0.1",
-    "localhost",
-]
+ALLOWED_HOSTS = ["*"]
+
 
 # Application definition
 INSTALLED_APPS = [
