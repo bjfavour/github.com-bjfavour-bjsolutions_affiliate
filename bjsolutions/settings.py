@@ -87,11 +87,11 @@ TEMPLATES = [
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get("DB_NAME"),  # Replace with your PostgreSQL database name
-        'USER': os.environ.get("DB_USER"),  # Replace with your PostgreSQL username
-        'PASSWORD': os.environ.get("DB_PASSWORD"),  # Replace with your PostgreSQL password
-        'HOST': os.environ.get("DB_HOST"),  # Or the IP address/hostname of your PostgreSQL server
-        'PORT': os.environ.get("DB_PORT"),  # Default PostgreSQL port, or your custom port
+        'NAME': os.environ.get("DB_NAME"),  
+        'USER': os.environ.get("DB_USER"),  
+        'PASSWORD': os.environ.get("DB_PASSWORD"),  
+        'HOST': os.environ.get("DB_HOST"),  
+        'PORT': os.environ.get("DB_PORT"),  
     }
 }
 
